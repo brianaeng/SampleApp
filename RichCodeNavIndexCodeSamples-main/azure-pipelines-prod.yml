@@ -1,0 +1,42 @@
+# Runs weekly or after every push to all branches to validate indexing against staging/production environments
+
+trigger:
+  branches:
+    include: ["main", "*"]
+  paths:
+    exclude: ["doc", "*.md"]
+
+schedules:
+- cron: "0 15 * * Wed" # Wed @ 8 or 9 AM Mountain Time (depending on DST)
+  displayName: Weekly Production Environment Validation Run
+  branches:
+    include:
+    - main
+  always: true
+
+pool:
+  name: AzurePipelines-EO
+  demands:
+  - ImageOverride -equals AzurePipelinesWindows2019compliant
+
+variables:
+  CodeIndex.Enabled: true
+  CodeIndex.Languages: 'csharp' # One or more languages separated by commas. See below for language options
+  CodeIndex.AutoBinlogs: true # If your build is not already producing binlogs, uncomment this line
+  CodeIndex.Debug: true # If you are experiencing issues, you can turn on this flag to provide us with more logging to help debug!
+
+steps:
+- task: NuGetCommand@2
+  displayName: NuGet restore
+  inputs:
+    restoreSolution: "**\\*.sln"
+    feedsToUse: "config"
+    nugetConfigPath: "csharp/nuget.config"
+    
+- task: DotNetCoreCLI@2
+  displayName: .NET Build
+  inputs:
+    command: 'build'
+    projects: 'csharp\TesterGame.sln'
+    arguments: '--no-restore'
+
