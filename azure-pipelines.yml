@@ -6,14 +6,6 @@ trigger:
   paths:
     exclude: ["doc", "*.md"]
 
-schedules:
-- cron: "0 15 * * Wed" # Wed @ 8 or 9 AM Mountain Time (depending on DST)
-  displayName: Weekly Production Environment Validation Run
-  branches:
-    include:
-    - main
-  always: true
-
 pool:
   name: AzurePipelines-EO
   demands:
